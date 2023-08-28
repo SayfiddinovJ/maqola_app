@@ -18,13 +18,13 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  String email = '';
+  String password = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.authBackgroundColor,
       body: SingleChildScrollView(
         child: BlocConsumer<AuthCubit, AuthState>(
           builder: (context, state) {
@@ -74,14 +74,14 @@ class _SignInPageState extends State<SignInPage> {
                         hintText: 'Email',
                         iconData: Icons.email,
                         textInputType: TextInputType.emailAddress,
-                        controller: emailController,
+                        onChanged: (v) => email = v,
                       ),
                       SizedBox(height: 20.h),
                       GlobalTextField(
                         hintText: 'Password',
                         iconData: Icons.key,
                         textInputType: TextInputType.visiblePassword,
-                        controller: passwordController,
+                        onChanged: (v) => password = v,
                       ),
                     ],
                   ),
@@ -91,11 +91,10 @@ class _SignInPageState extends State<SignInPage> {
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: GlobalButton(
                       onPressed: () async {
-                        if (emailController.text.isNotEmpty &&
-                            passwordController.text.isNotEmpty) {
-                          context.read<AuthCubit>().login(
-                              gmail: emailController.text,
-                              password: passwordController.text);
+                        if (email.isNotEmpty && password.isNotEmpty) {
+                          context
+                              .read<AuthCubit>()
+                              .login(gmail: email, password: password);
                         }
                       },
                       text: 'Sign In'),

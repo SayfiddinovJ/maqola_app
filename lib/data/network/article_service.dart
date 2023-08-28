@@ -1,10 +1,13 @@
+import 'dart:io';
+
+import 'package:columnist/data/local/shared_preference.dart';
+import 'package:columnist/data/models/articles/article_model.dart';
 import 'package:columnist/data/models/universal_data.dart';
-import 'package:columnist/data/models/user/user_model.dart';
 import 'package:columnist/utils/constants/constants.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-class ApiService {
+class ArticleService {
   final _dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
@@ -15,7 +18,7 @@ class ApiService {
     ),
   );
 
-  ApiService() {
+  ArticleService() {
     init();
   }
 
@@ -28,24 +31,29 @@ class ApiService {
         },
         onRequest: (requestOptions, handler) async {
           debugPrint('On Request: ${requestOptions.data}');
+          requestOptions.headers
+              .addAll({"token": StorageRepository.getString("token")});
           return handler.next(requestOptions);
         },
         onResponse: (response, handler) async {
-          debugPrint('On Response: ${response.data}');
+          debugPrint('On Response: ${response.statusCode}');
           return handler.next(response);
         },
       ),
     );
   }
 
-  Future<UniversalData> verifyViaGmail(
-      {required String gmail, required String password}) async {
+  Future<UniversalData> getAllArticles() async {
     Response response;
     try {
-      response = await _dio
-          .post("/gmail", data: {"gmail": gmail, "password": password});
+      response = await _dio.get("/articles");
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
-        return UniversalData(data: response.data['message']);
+        return UniversalData(
+          data: (response.data['data'] as List?)
+                  ?.map((e) => ArticleModel.fromJson(e))
+                  .toList() ??
+              [],
+        );
       }
       return UniversalData(error: 'ERROR');
     } on DioException catch (e) {
@@ -60,14 +68,13 @@ class ApiService {
     }
   }
 
-  Future<UniversalData> checkTheCode({required String code}) async {
+  Future<UniversalData> getArticleById(int id) async {
     Response response;
     try {
-      response = await _dio.post("/password", data: {
-        "checkPass": code,
-      });
+      response = await _dio.get("/articles/$id");
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
-        return UniversalData(data: response.data['message']);
+        return UniversalData(
+            data: ArticleModel.fromJson(response.data['data']));
       }
       return UniversalData(error: 'ERROR');
     } on DioException catch (e) {
@@ -82,52 +89,25 @@ class ApiService {
     }
   }
 
-  Future<UniversalData> register({required UserModel userModel}) async {
+  Future<UniversalData> createArticle(
+      {required ArticleModel articleModel}) async {
     Response response;
     _dio.options.headers = {
-      "Accept": "multipart/form-data",
+      "Accept": "application/form-data",
     };
     try {
-      response =
-          await _dio.post("/register", data: await userModel.getFormData());
-      debugPrint('Response ${response.data}');
-      if (response.statusCode! >= 200 && response.statusCode! < 300) {
-        debugPrint('Response in if: ${response.data}');
-        return UniversalData(data: response.data['data']);
-      }
-      return UniversalData(error: 'ERROR');
-    } on DioException catch (e) {
-      if (e.response != null) {
-        return UniversalData(error: e.response!.data['data']);
-      } else {
-        return UniversalData(error: e.message!);
-      }
-    } catch (e) {
-      debugPrint("Caught: $e");
-      return UniversalData(error: e.toString());
-    }
-  }
-
-  Future<UniversalData> login(
-      {required String gmail, required String password}) async {
-    Response response;
-    try {
-      response = await _dio
-          .post("/login", data: {"gmail": gmail, "password": password});
-
-      if (response.statusCode! >= 200 && response.statusCode! < 300) {
+      response = await _dio.post(
+        '/articles',
+        data: articleModel.toJson(),
+      );
+      if ((response.statusCode! >= 200) && (response.statusCode! < 300)) {
         return UniversalData(data: response.data["data"]);
       }
-      return UniversalData(error: 'ERROR');
-    } on DioException catch (e) {
-      if (e.response != null) {
-        return UniversalData(error: e.response!.data['message']);
-      } else {
-        return UniversalData(error: e.message!);
-      }
-    } catch (e) {
-      debugPrint("Caught: $e");
+      return UniversalData(error: "Other Error");
+    } on SocketException catch (e) {
       return UniversalData(error: e.toString());
+    } catch (error) {
+      return UniversalData(error: error.toString());
     }
   }
 }

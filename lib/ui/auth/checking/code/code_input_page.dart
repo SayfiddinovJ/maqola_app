@@ -1,5 +1,7 @@
 import 'package:columnist/cubits/auth/auth_cubit.dart';
 import 'package:columnist/cubits/auth/auth_state.dart';
+import 'package:columnist/cubits/profile/profile_cubit.dart';
+import 'package:columnist/cubits/user/user_cubit.dart';
 import 'package:columnist/data/models/user/user_model.dart';
 import 'package:columnist/ui/auth/global_text_field.dart';
 import 'package:columnist/ui/auth/widgets/global_button.dart';
@@ -21,35 +23,36 @@ class CodeInput extends StatefulWidget {
 }
 
 class _CodeInputState extends State<CodeInput> {
-  TextEditingController confirmController = TextEditingController();
+  String code = '';
 
   var codeFormatter = MaskTextInputFormatter(
     mask: '### ###',
     filter: {"#": RegExp(r'[0-9]')},
   );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.authBackgroundColor,
       body: BlocConsumer<AuthCubit, AuthState>(
         builder: (context, state) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 100.h),
-              Text(
-                'Verify Email',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20.sp,
-                  color: Colors.white
+              SizedBox(height: 200.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
+                child: Text(
+                  'Verify Email',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20.sp,
+                      color: Colors.white),
                 ),
               ),
-              SizedBox(height: 100.h),
-
+              SizedBox(height: 20.h),
               Container(
-                padding:
-                EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
                 margin: EdgeInsets.symmetric(horizontal: 16.w),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.textFieldBorderColor),
@@ -57,7 +60,9 @@ class _CodeInputState extends State<CodeInput> {
                   color: AppColors.textFieldBackgroundColor,
                 ),
                 child: GlobalTextField(
-                  controller: confirmController,
+                  onChanged: (c) {
+                    code = c;
+                  },
                   hintText: 'Code',
                   iconData: Icons.key,
                   textInputType: TextInputType.number,
@@ -71,7 +76,7 @@ class _CodeInputState extends State<CodeInput> {
                   onPressed: () {
                     context
                         .read<AuthCubit>()
-                        .checkTheIncomingCode(confirmController.text.replaceAll(' ', ''));
+                        .checkTheIncomingCode(code.replaceAll(' ', ''));
                   },
                   text: 'Confirm',
                 ),
@@ -80,20 +85,26 @@ class _CodeInputState extends State<CodeInput> {
           );
         },
         listener: (context, state) {
-          if (state is AuthCheckTheCodeState) {
-            context.read<AuthCubit>().registerUser(widget.user);
-          }
-
-          if (state is AuthVerifySuccessState) {
+          if (state is AuthLoggedState) {
+            context.read<UserCubit>().clear();
+            BlocProvider.of<ProfileCubit>(context).getUser();
             Navigator.pop(context);
             Navigator.pop(context);
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => const TabsBox()));
           }
-
+          if (state is AuthVerifySuccessState) {
+            context.read<AuthCubit>().registerUser(widget.user);
+          }
+          if (state is AuthLoadingState) {
+            const Center(child: CircularProgressIndicator());
+          }
           if (state is AuthErrorState) {
             showErrorMessage(message: state.error, context: context);
           }
+        },
+        buildWhen: (preState, curState) {
+          return preState != curState;
         },
       ),
     );

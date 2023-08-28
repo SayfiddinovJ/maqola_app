@@ -1,24 +1,26 @@
 import 'package:columnist/data/local/shared_preference.dart';
 import 'package:columnist/data/models/universal_data.dart';
 import 'package:columnist/data/models/user/user_model.dart';
-import 'package:columnist/data/network/api_service.dart';
+import 'package:columnist/data/network/auth_service.dart';
 
 class AuthRepository {
-  final ApiService apiService;
+  final AuthService apiService;
 
   AuthRepository({required this.apiService});
 
   Future<UniversalData> verifyViaGmail(
           {required String gmail, required String password}) async =>
-      apiService.verifyViaGmail(gmail: gmail, password: password);
+      await apiService.verifyViaGmail(gmail: gmail, password: password);
 
-  Future<UniversalData> checkTheCode({required String code}) async => apiService.checkTheCode(code: code);
+  Future<UniversalData> checkTheCode({required String code}) async =>
+      await apiService.checkTheCode(code: code);
 
-  Future<UniversalData> register(
-      {required UserModel userModel}) async => apiService.register(userModel: userModel);
+  Future<UniversalData> register({required UserModel userModel}) async =>
+      await apiService.register(userModel: userModel);
 
   Future<UniversalData> login(
-      {required String gmail, required String password}) async => apiService.login(gmail: gmail, password: password);
+          {required String gmail, required String password}) async =>
+      await apiService.login(gmail: gmail, password: password);
 
   String getToken() => StorageRepository.getString("token");
 

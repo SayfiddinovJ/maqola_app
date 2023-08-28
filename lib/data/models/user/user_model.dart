@@ -51,6 +51,20 @@ class UserModel {
     };
   }
 
+  @override
+  String toString() {
+    return '''
+      username: $username,
+      contact: $contact,
+      password: $password,
+      email: $email,
+      avatar: $avatar,
+      profession: $profession,
+      role: $role,
+      gender: $gender,
+    ''';
+  }
+
   Future<FormData> getFormData() async {
     XFile file = XFile(avatar);
     String fileName = file.path.split('/').last;
@@ -64,4 +78,25 @@ class UserModel {
       "avatar": await MultipartFile.fromFile(file.path, filename: fileName),
     });
   }
+
+  UserModel copyWith({
+    String? username,
+    String? contact,
+    String? email,
+    String? password,
+    String? avatar,
+    String? profession,
+    String? role,
+    String? gender,
+  }) =>
+      UserModel(
+        username: username ?? this.username,
+        contact: contact ?? this.contact,
+        email: email ?? this.email,
+        password: password ?? this.password,
+        avatar: avatar ?? this.avatar,
+        profession: profession ?? this.profession,
+        role: role ?? this.role,
+        gender: gender ?? this.gender,
+      );
 }

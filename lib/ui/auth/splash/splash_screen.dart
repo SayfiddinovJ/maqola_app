@@ -1,5 +1,6 @@
 import 'package:columnist/cubits/auth/auth_cubit.dart';
 import 'package:columnist/cubits/auth/auth_state.dart';
+import 'package:columnist/cubits/profile/profile_cubit.dart';
 import 'package:columnist/ui/auth/sign_in/sign_in_page.dart';
 import 'package:columnist/ui/tabs_box.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,7 @@ class _SplashPageState extends State<SplashPage> {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const SignInPage()));
           }
           if(state is AuthLoggedState){
+            BlocProvider.of<ProfileCubit>(context).getUser();
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const TabsBox()));
           }
         },

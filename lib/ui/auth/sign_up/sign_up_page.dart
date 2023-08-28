@@ -1,9 +1,11 @@
 import 'package:columnist/cubits/auth/auth_cubit.dart';
 import 'package:columnist/cubits/auth/auth_state.dart';
-import 'package:columnist/data/models/user/user_model.dart';
+import 'package:columnist/cubits/user/user_cubit.dart';
+import 'package:columnist/data/models/user/user_fields.dart';
 import 'package:columnist/ui/auth/checking/code/code_input_page.dart';
 import 'package:columnist/ui/auth/global_text_field.dart';
 import 'package:columnist/ui/auth/sign_in/sign_in_page.dart';
+import 'package:columnist/ui/auth/sign_up/widget/gender_selector.dart';
 import 'package:columnist/ui/auth/widgets/global_button.dart';
 import 'package:columnist/utils/app_colors.dart';
 import 'package:columnist/utils/ui_utils/show_dialog.dart';
@@ -23,26 +25,15 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   ImagePicker imagePicker = ImagePicker();
 
-  XFile? file;
-
   var contactFormatter = MaskTextInputFormatter(
     mask: '+998 (##) ###-##-##',
     filter: {"#": RegExp(r'[0-9]')},
   );
 
-  TextEditingController usernameController = TextEditingController();
-  TextEditingController contactController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController professionController = TextEditingController();
-
-  int gender = 1;
-  int selectedValue = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
+      backgroundColor: AppColors.authBackgroundColor,
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: BlocConsumer<AuthCubit, AuthState>(
@@ -80,7 +71,10 @@ class _SignUpPageState extends State<SignUpPage> {
                         hintText: 'Username',
                         iconData: Icons.verified_user,
                         textInputType: TextInputType.emailAddress,
-                        controller: usernameController,
+                        onChanged: (v) => context
+                            .read<UserCubit>()
+                            .updateUserFields(
+                                field: UserField.username, value: v),
                       ),
                       SizedBox(height: 20.h),
                       GlobalTextField(
@@ -88,28 +82,41 @@ class _SignUpPageState extends State<SignUpPage> {
                         iconData: Icons.phone,
                         textInputType: TextInputType.phone,
                         textInputFormatter: contactFormatter,
-                        controller: contactController,
+                        onChanged: (v) {
+                          if (v != '-' || v != '(' || v != ')' || v != '+') {
+                            context.read<UserCubit>().updateUserFields(
+                                field: UserField.contact, value: v);
+                          }
+                        },
                       ),
                       SizedBox(height: 20.h),
                       GlobalTextField(
                         hintText: 'Email',
                         iconData: Icons.email,
                         textInputType: TextInputType.emailAddress,
-                        controller: emailController,
+                        onChanged: (v) => context
+                            .read<UserCubit>()
+                            .updateUserFields(field: UserField.email, value: v),
                       ),
                       SizedBox(height: 20.h),
                       GlobalTextField(
                         hintText: 'Password',
                         iconData: Icons.key,
                         textInputType: TextInputType.visiblePassword,
-                        controller: passwordController,
+                        onChanged: (v) => context
+                            .read<UserCubit>()
+                            .updateUserFields(
+                                field: UserField.password, value: v),
                       ),
                       SizedBox(height: 20.h),
                       GlobalTextField(
                         hintText: 'Profession',
                         iconData: Icons.work,
                         textInputType: TextInputType.text,
-                        controller: professionController,
+                        onChanged: (v) => context
+                            .read<UserCubit>()
+                            .updateUserFields(
+                                field: UserField.profession, value: v),
                       ),
                       SizedBox(height: 20.h),
                       ListTile(
@@ -129,51 +136,19 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 SizedBox(height: 10.h),
-                Column(
-                  children: [
-                    RadioListTile(
-                      activeColor: Colors.white,
-                      value: 0,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedValue = value!;
-                        });
-                      },
-                      title: const Text(
-                        'Male',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    RadioListTile(
-                      activeColor: Colors.white,
-                      value: 1,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedValue = value!;
-                        });
-                      },
-                      title: const Text(
-                        'Female',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
+                const GenderSelector(),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: GlobalButton(
                       onPressed: () async {
-                        if (file != null &&
-                            usernameController.text.isNotEmpty &&
-                            contactController.text.isNotEmpty &&
-                            emailController.text.isNotEmpty &&
-                            professionController.text.isNotEmpty &&
-                            passwordController.text.length > 7) {
+                        if (context.read<UserCubit>().canRegister()) {
                           context.read<AuthCubit>().verifyViaGmail(
-                                emailController.text,
-                                passwordController.text,
+                                context.read<UserCubit>().state.userModel.email,
+                                context
+                                    .read<UserCubit>()
+                                    .state
+                                    .userModel
+                                    .password,
                               );
                         }
                       },
@@ -190,7 +165,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
                             builder: ((context) => const SignInPage()),
@@ -211,20 +186,11 @@ class _SignUpPageState extends State<SignUpPage> {
           },
           listener: (context, state) {
             if (state is AuthVerifySuccessState) {
-              UserModel userModel = UserModel(
-                password: passwordController.text,
-                username: usernameController.text,
-                email: emailController.text,
-                avatar: file!.path,
-                contact: contactController.text,
-                gender: gender.toString(),
-                profession: professionController.text,
-                role: "male",
-              );
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => CodeInput(user: userModel),
+                  builder: (context) => CodeInput(
+                      user: context.read<UserCubit>().state.userModel),
                 ),
               );
             }
@@ -246,7 +212,7 @@ class _SignUpPageState extends State<SignUpPage> {
           padding: EdgeInsets.all(24.r),
           height: 180.h,
           decoration: BoxDecoration(
-            color: AppColors.backgroundColor,
+            color: AppColors.authBackgroundColor,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(16),
@@ -296,8 +262,10 @@ class _SignUpPageState extends State<SignUpPage> {
       maxWidth: 512,
     );
 
-    if (xFile != null) {
-      file = xFile;
+    if (xFile != null && context.mounted) {
+      context
+          .read<UserCubit>()
+          .updateUserFields(field: UserField.avatar, value: xFile.path);
     }
   }
 
@@ -307,8 +275,10 @@ class _SignUpPageState extends State<SignUpPage> {
       maxHeight: 512,
       maxWidth: 512,
     );
-    if (xFile != null) {
-      file = xFile;
+    if (xFile != null && context.mounted) {
+      context
+          .read<UserCubit>()
+          .updateUserFields(field: UserField.avatar, value: xFile.path);
     }
   }
 }

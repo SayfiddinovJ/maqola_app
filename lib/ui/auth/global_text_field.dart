@@ -11,14 +11,16 @@ class GlobalTextField extends StatefulWidget {
     required this.iconData,
     required this.textInputType,
     this.textInputFormatter,
-    required this.controller,
+    required this.onChanged,
+    this.maxLines = 1,
   });
 
   final IconData iconData;
   final String hintText;
   final TextInputType textInputType;
   final TextInputFormatter? textInputFormatter;
-  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final int maxLines;
 
   @override
   State<GlobalTextField> createState() => _GlobalTextFieldState();
@@ -30,6 +32,7 @@ class _GlobalTextFieldState extends State<GlobalTextField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      maxLines: widget.maxLines,
       style: const TextStyle(color: Colors.white),
       inputFormatters: [
         widget.textInputFormatter == null
@@ -37,7 +40,7 @@ class _GlobalTextFieldState extends State<GlobalTextField> {
             : widget.textInputFormatter!
       ],
       keyboardType: widget.textInputType,
-      controller: widget.controller,
+      onChanged: widget.onChanged,
       decoration: InputDecoration(
         prefixIcon: Icon(
           widget.iconData,
