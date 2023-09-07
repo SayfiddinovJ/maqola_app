@@ -73,7 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => ArticleDetailScreen(
                             id: article.artId,
-                            username: article.username, avatar: article.avatar,
+                            username: article.username,
+                            avatar: article.avatar,
                           ),
                         ),
                       );
@@ -159,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         children: [
                                           Icon(
                                             Icons.error,
-                                            size: 100.h,
+                                            size: 100.h
                                           ),
                                           const Text('Image not found'),
                                         ],

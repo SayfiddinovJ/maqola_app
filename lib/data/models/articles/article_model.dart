@@ -45,7 +45,8 @@ class ArticleModel {
     return {
       "image": image,
       "title": title,
-      "description": description
+      "description": description,
+      "hashtag":"#hashtag"
     };
   }
 

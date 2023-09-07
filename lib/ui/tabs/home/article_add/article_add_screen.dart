@@ -5,10 +5,12 @@ import 'package:columnist/data/status.dart';
 import 'package:columnist/ui/auth/global_text_field.dart';
 import 'package:columnist/ui/auth/widgets/global_button.dart';
 import 'package:columnist/utils/app_colors.dart';
+import 'package:columnist/utils/app_icons.dart';
 import 'package:columnist/utils/ui_utils/show_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ArticleAddScreen extends StatefulWidget {
@@ -34,9 +36,11 @@ class _ArticleAddScreenState extends State<ArticleAddScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
+        title: Center(
+          child: SvgPicture.asset(AppIcons.smallLogo),
+        ),
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
-        title: const Text('Article Add Screen'),
       ),
       body: SingleChildScrollView(
         child: BlocConsumer<ArticleCubit, ArticleState>(
@@ -122,9 +126,6 @@ class _ArticleAddScreenState extends State<ArticleAddScreen> {
             );
           },
           listener: (context, state) {
-            if (state.status == FormStatus.loading) {
-              const Center(child: CircularProgressIndicator());
-            }
             if (state.status == FormStatus.success &&
                 state.statusText == 'article_added') {
               BlocProvider.of<ArticleCubit>(context).getAllArticles(context);

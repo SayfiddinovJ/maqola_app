@@ -26,10 +26,21 @@ class _SignInPageState extends State<SignInPage> {
     return Scaffold(
       backgroundColor: AppColors.authBackgroundColor,
       body: SingleChildScrollView(
-        child: BlocConsumer<AuthCubit, AuthState>(
+        child: BlocBuilder<AuthCubit, AuthState>(
           builder: (context, state) {
             if (state is AuthLoadingState) {
               return const Center(child: CircularProgressIndicator());
+            }
+            if (state is AuthLoggedState) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TabsBox(),
+                ),
+              );
+            }
+            if (state is AuthErrorState) {
+              showErrorMessage(message: state.error, context: context);
             }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,19 +135,6 @@ class _SignInPageState extends State<SignInPage> {
                 )
               ],
             );
-          },
-          listener: (context, state) {
-            if (state is AuthLoggedState) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TabsBox(),
-                ),
-              );
-            }
-            if (state is AuthErrorState) {
-              showErrorMessage(message: state.error, context: context);
-            }
           },
         ),
       ),

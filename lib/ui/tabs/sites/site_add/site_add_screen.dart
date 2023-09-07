@@ -5,10 +5,12 @@ import 'package:columnist/data/status.dart';
 import 'package:columnist/ui/auth/global_text_field.dart';
 import 'package:columnist/ui/auth/widgets/global_button.dart';
 import 'package:columnist/utils/app_colors.dart';
+import 'package:columnist/utils/app_icons.dart';
 import 'package:columnist/utils/ui_utils/show_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
@@ -30,101 +32,112 @@ class _SiteAddScreenState extends State<SiteAddScreen> {
     super.initState();
   }
 
-  // var contactFormatter = MaskTextInputFormatter(
-  //   mask: '+998 (##) ###-##-##',
-  //   filter: {"#": RegExp(r'[0-9]')},
-  // );
+  var contactFormatter = MaskTextInputFormatter(
+    mask: '+998 (##) ###-##-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
+        title: Center(
+          child: SvgPicture.asset(AppIcons.smallLogo),
+        ),
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
-        title: const Text('Site Add Screen'),
       ),
       body: SingleChildScrollView(
         child: BlocConsumer<SiteCubit, SiteState>(
           builder: (context, state) {
-            return Column(
-              children: [
-                GlobalTextField(
-                  hintText: 'Name',
-                  iconData: Icons.account_circle,
-                  textInputType: TextInputType.name,
-                  onChanged: (v) => context
-                      .read<SiteCubit>()
-                      .updateSiteField(field: SiteField.name, value: v),
-                ),
-                GlobalTextField(
-                  hintText: 'Link',
-                  iconData: Icons.link,
-                  textInputType: TextInputType.url,
-                  onChanged: (v) => context
-                      .read<SiteCubit>()
-                      .updateSiteField(field: SiteField.link, value: v),
-                ),
-                GlobalTextField(
-                  hintText: 'Author',
-                  iconData: Icons.edit,
-                  textInputType: TextInputType.name,
-                  onChanged: (v) => context
-                      .read<SiteCubit>()
-                      .updateSiteField(field: SiteField.author, value: v),
-                ),
-                GlobalTextField(
-                  // textInputFormatter: contactFormatter,
-                  hintText: 'Contact',
-                  iconData: Icons.phone,
-                  textInputType: TextInputType.number,
-                  onChanged: (v) {
-                    if (v != '-' || v != '(' || v != ')' || v != '+') {
+            return Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
+              margin: EdgeInsets.symmetric(horizontal: 16.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.textFieldBorderColor),
+                borderRadius: BorderRadius.circular(18.r),
+                color: AppColors.textFieldBackgroundColor,
+              ),
+              child: Column(
+                children: [
+                  GlobalTextField(
+                    hintText: 'Name',
+                    iconData: Icons.account_circle,
+                    textInputType: TextInputType.name,
+                    onChanged: (v) => context
+                        .read<SiteCubit>()
+                        .updateSiteField(field: SiteField.name, value: v),
+                  ),
+                  GlobalTextField(
+                    hintText: 'Link',
+                    iconData: Icons.link,
+                    textInputType: TextInputType.url,
+                    onChanged: (v) => context
+                        .read<SiteCubit>()
+                        .updateSiteField(field: SiteField.link, value: v),
+                  ),
+                  GlobalTextField(
+                    hintText: 'Author',
+                    iconData: Icons.edit,
+                    textInputType: TextInputType.name,
+                    onChanged: (v) => context
+                        .read<SiteCubit>()
+                        .updateSiteField(field: SiteField.author, value: v),
+                  ),
+                  GlobalTextField(
+                    textInputFormatter: contactFormatter,
+                    hintText: 'Contact',
+                    iconData: Icons.phone,
+                    textInputType: TextInputType.number,
+                    onChanged: (v) {
+                      v.replaceAll('+', '');
+                      v.replaceAll('(', '');
+                      v.replaceAll(')', '');
+                      v.replaceAll('-', '');
+                      v.replaceAll(' ', '');
                       context
                           .read<SiteCubit>()
                           .updateSiteField(field: SiteField.contact, value: v);
-                    }
-                  },
-                ),
-                GlobalTextField(
-                  hintText: 'Hashtag',
-                  iconData: Icons.numbers,
-                  textInputType: TextInputType.name,
-                  onChanged: (v) => context
-                      .read<SiteCubit>()
-                      .updateSiteField(field: SiteField.hashtag, value: v),
-                ),
-                ListTile(
-                  leading: const Icon(
-                    Icons.image,
-                    color: Colors.white,
-                  ),
-                  title: const Text(
-                    'Select image',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onTap: () {
-                    showBottomSheetDialog();
-                  },
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: GlobalButton(
-                    onPressed: () async {
-                      if (bloc.state.canAddWebsite()) {
-                        context.read<SiteCubit>().createWebsite();
-                      }
                     },
-                    text: 'ADD',
                   ),
-                ),
-              ],
+                  GlobalTextField(
+                    hintText: 'Hashtag',
+                    iconData: Icons.numbers,
+                    textInputType: TextInputType.name,
+                    onChanged: (v) => context
+                        .read<SiteCubit>()
+                        .updateSiteField(field: SiteField.hashtag, value: v),
+                  ),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.image,
+                      color: Colors.white,
+                    ),
+                    title: const Text(
+                      'Select image',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      showBottomSheetDialog();
+                    },
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: GlobalButton(
+                      onPressed: () async {
+                        if (bloc.state.canAddWebsite()) {
+                          context.read<SiteCubit>().createWebsite();
+                        }
+                      },
+                      text: 'ADD',
+                    ),
+                  ),
+                ],
+              ),
             );
           },
           listener: (context, state) {
-            // if (state.status == FormStatus.loading) {
-            //   const Center(child: CircularProgressIndicator());
-            // }
             if (state.status == FormStatus.success &&
                 state.statusText == 'website_added') {
               BlocProvider.of<SiteCubit>(context).getSites(context);
@@ -132,7 +145,6 @@ class _SiteAddScreenState extends State<SiteAddScreen> {
                   title: 'Add', message: 'Site added', context: context);
             }
           },
-
         ),
       ),
     );

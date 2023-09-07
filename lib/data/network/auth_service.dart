@@ -127,7 +127,6 @@ class AuthService {
     } on DioException catch (e) {
       if (e.response != null) {
         return UniversalData(error: e.response!.data['message']);
-
       } else {
         return UniversalData(error: e.message!);
       }
